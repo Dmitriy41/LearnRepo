@@ -35,6 +35,7 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           working-directory: ${{ env.BRANCH }}
+          skip-cache: true # Отключаем кэш для исключения проблем
 
   tests:
     runs-on: ubuntu-latest
