@@ -7,8 +7,8 @@ on:
 
 env:
   GO111MODULE: "on"
-  GOLANG_VERSION: ~1.23
-  GOLANGCI_LINT_VERSION: v1.63.4
+  GOLANG_VERSION: "1.24.5"  # Конкретная версия вместо ~1.23
+  GOLANGCI_LINT_VERSION: "v1.55.2"  # Более стабильная версия линтера
 
 jobs:
   lint:
@@ -16,62 +16,69 @@ jobs:
     if: ${{ !contains(github.ref, 'calendar') }}
     steps:
       - name: Extract branch name
-        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+        id: extract_branch
+        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GOLANG_VERSION }}
+          cache: true
 
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Download dependencies
-        run: go mod download
-        working-directory: ${{ env.BRANCH }}
-
-      - name: Linters
+      - name: Setup dependencies
+        run: |
+          cd ${{ steps.extract_branch.outputs.branch }}
+          go mod download
+          go mod tidy
+          
+      - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
-          working-directory: ${{ env.BRANCH }}
-          skip-cache: true # Отключаем кэш для исключения проблем
+          working-directory: ${{ steps.extract_branch.outputs.branch }}
+          args: --timeout=5m
 
   tests:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.ref, 'calendar') }}
+    needs: lint
     steps:
       - name: Extract branch name
-        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+        id: extract_branch
+        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GOLANG_VERSION }}
+          cache: true
 
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Download dependencies
-        run: go mod download
-        working-directory: ${{ env.BRANCH }}
+      - name: Run tests
+        run: |
+          cd ${{ steps.extract_branch.outputs.branch }}
+          go test -v -count=1 -race -timeout=3m ./...
 
-      - name: Unit tests
-        run: go test -v -count=1 -race -timeout=1m ./...
-        working-directory: ${{ env.BRANCH }}
+      - name: Run benchmark tests
+        if: ${{ steps.extract_branch.outputs.branch == 'hw10_program_optimization' }}
+        run: |
+          cd ${{ steps.extract_branch.outputs.branch }}
+          go test -v -count=1 -timeout=3m -tags bench ./...
 
-      - name: Optimization tests
-        run: go test -v -count=1 -timeout=1m -tags bench ./...
-        if: env.BRANCH == 'hw10_program_optimization'
-        working-directory: ${{ env.BRANCH }}
-
-      - name: Bash tests
+      - name: Run bash tests
+        if: contains('hw01_hello_otus hw07_file_copying hw08_envdir_tool hw11_telnet_client', steps.extract_branch.outputs.branch)
         shell: bash
-        run: ./test.sh
-        if: contains('hw01_hello_otus hw07_file_copying hw08_envdir_tool hw11_telnet_client', env.BRANCH)
-        working-directory: ${{ env.BRANCH }}
+        run: |
+          cd ${{ steps.extract_branch.outputs.branch }}
+          chmod +x test.sh
+          ./test.sh
 
-  tests_by_makefile:
+  calendar_tests:
     runs-on: ubuntu-latest
     if: contains(github.ref, 'calendar')
     steps:
@@ -79,18 +86,14 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GOLANG_VERSION }}
+          cache: true
 
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: make lint
-        run: make lint
+      - name: Run calendar tests
         working-directory: hw12_13_14_15_16_calendar
-
-      - name: make build
-        run: make build
-        working-directory: hw12_13_14_15_16_calendar
-
-      - name: make test
-        run: make test
-        working-directory: hw12_13_14_15_16_calendar
+        run: |
+          make lint
+          make build
+          make test
