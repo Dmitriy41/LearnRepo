@@ -1,7 +1,7 @@
 // Package main переворачивает строку Hello, OTUS!
 package main
 
-// nolint:depguard
+//nolint:depguard
 import (
 	"fmt"
 
@@ -10,6 +10,5 @@ import (
 
 func main() {
 	// Place your code here.
-	myStr := "Hello, OTUS!"
-	fmt.Print(reverse.String(myStr))
+	fmt.Print(reverse.String("Hello, OTUS!"))
 }
