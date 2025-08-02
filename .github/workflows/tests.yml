@@ -1,99 +1,87 @@
-name: Otus homework tests
+version: "2"
 
-on:
-  push:
-    branches:
-      - hw*
+run:
+  tests: true
+  build-tags:
+    - bench
+    - !bench
 
-env:
-  GO111MODULE: "on"
-  GOLANG_VERSION: "1.24.5"  # Конкретная версия вместо ~1.23
-  GOLANGCI_LINT_VERSION: "v2"  # Более стабильная версия линтера
+linters-settings:
+  funlen:
+    lines: 150
+    statements: 80
+  depguard:
+    rules:
+      Main:
+        files:
+         - $all
+         - "!$test"
+        allow:
+          - $gostd
+          - "golang.org/x/example/hello/reverse"
+          - "golang.org/x/example/*"
+          - "golang.org/x/example/hello/reverse"
+          - "golang.org/x/example/..."
+      Test:
+        files:
+          - $test
+        allow:
+          - $gostd
+          - github.com/stretchr/testify
+          - pkg: "golang.org/x/example/hello/reverse"
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - dupl
+        - gocyclo
+        - gosec
 
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    if: ${{ !contains(github.ref, 'calendar') }}
-    steps:
-      - name: Extract branch name
-        id: extract_branch
-        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GOLANG_VERSION }}
-          cache: true
-
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Setup dependencies
-        run: |
-          cd ${{ steps.extract_branch.outputs.branch }}
-          go mod download
-          go mod tidy
-          
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: ${{ env.GOLANGCI_LINT_VERSION }}
-          working-directory: ${{ steps.extract_branch.outputs.branch }}
-          args: --timeout=5m
-
-  tests:
-    runs-on: ubuntu-latest
-    if: ${{ !contains(github.ref, 'calendar') }}
-    needs: lint
-    steps:
-      - name: Extract branch name
-        id: extract_branch
-        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GOLANG_VERSION }}
-          cache: true
-
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Run tests
-        run: |
-          cd ${{ steps.extract_branch.outputs.branch }}
-          go test -v -count=1 -race -timeout=3m ./...
-
-      - name: Run benchmark tests
-        if: ${{ steps.extract_branch.outputs.branch == 'hw10_program_optimization' }}
-        run: |
-          cd ${{ steps.extract_branch.outputs.branch }}
-          go test -v -count=1 -timeout=3m -tags bench ./...
-
-      - name: Run bash tests
-        if: contains('hw01_hello_otus hw07_file_copying hw08_envdir_tool hw11_telnet_client', steps.extract_branch.outputs.branch)
-        shell: bash
-        run: |
-          cd ${{ steps.extract_branch.outputs.branch }}
-          chmod +x test.sh
-          ./test.sh
-
-  calendar_tests:
-    runs-on: ubuntu-latest
-    if: contains(github.ref, 'calendar')
-    steps:
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GOLANG_VERSION }}
-          cache: true
-
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Run calendar tests
-        working-directory: hw12_13_14_15_16_calendar
-        run: |
-          make lint
-          make build
-          make test
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    - depguard
+    - dogsled
+    - dupl
+    - bodyclose
+    - durationcheck
+    - errorlint
+    - exhaustive
+    - copyloopvar
+    - funlen
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - goheader
+    - goprintffuncname
+    - gosec
+    - govet
+    - importas
+    - ineffassign
+    - lll
+    - makezero
+    - misspell
+    - nestif
+    - nilerr
+    - noctx
+    - nolintlint
+    - prealloc
+    - predeclared
+    - revive
+    - staticcheck
+    - tagliatelle
+    - thelper
+    #typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
