@@ -1,4 +1,4 @@
-module github.com/Dmitriy41/LearnRepo/tree/master/hw01_hello_otus
+module github.com/OtusGolang/home_work/tree/master/hw01_hello_otus
 
 go 1.23
 
