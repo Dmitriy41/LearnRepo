@@ -1,7 +1,7 @@
 // Package main переворачивает строку Hello, OTUS!
 package main
 
-//nolint:depguard
+// nolint:depguard
 import (
 	"fmt"
 
