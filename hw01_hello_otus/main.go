@@ -7,7 +7,6 @@ import (
 	"golang.org/x/example/hello/reverse"
 )
 
-func main() {
-	
+func main() {	
 	fmt.Print(reverse.String("Hello, OTUS!"))
 }
