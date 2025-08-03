@@ -1,4 +1,4 @@
-module github.com/Dmitriy41/LearnRepo/tree/hw01_hello_otus/hw01_hello_otus
+module github.com/Dmitriy41/LearnRepo/tree/hw01_hello_otus
 
 go 1.24.5
 
