@@ -1,7 +1,6 @@
 // Package main переворачивает строку Hello, OTUS!
 package main
 
-
 import (
 	"fmt"
 
