@@ -3,10 +3,11 @@ package main
 
 import (
 	"fmt"
-
+	
 	"golang.org/x/example/hello/reverse"
 )
 
-func main() {	
+func main() {
+	// Place your code here.
 	fmt.Print(reverse.String("Hello, OTUS!"))
 }
